@@ -8,12 +8,31 @@
     </head>
     <style>
         body {
-            background-color: #333;
+            background: #0f0f0f; 
+            box-sizing: border-box;
+            margin: 0;
+            height: 100vh;
             color: #eee;
             font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #main {
+            height: 50%;
+            width: 50%;
+        }
+
+        .tile {
+            background-color: #3a3b3c;
+            /* border-radius: 10px; */
+            /* box-shadow: 0px 0px 8px 0px rgba(0,0,0,0.3); */
+            box-sizing: border-box;
+            padding: 20px;
         }
     </style>
     <body>
-        Hello World
+        <div id="main" class="tile">hello world</div>
     </body>
 </html>
