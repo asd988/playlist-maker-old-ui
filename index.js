@@ -35,3 +35,33 @@ function login() {
         }).toString();
 }
 
+function logout() {
+    document.getElementById("logged-in").style.display = "none"
+    notLoggedIn()
+}
+
+async function load() {
+    if (Cookies.get("profile") !== undefined) {
+        const { access_token } = JSON.parse(Cookies.get("profile"))
+        let response = await fetch("https://api.spotify.com/v1/me", {headers:{'Authorization': 'Bearer ' + access_token}});
+        let data = await response.json()
+        console.log(data)
+        if (response.status === 200) {
+            document.getElementById("logged-in").style.display = ""
+
+            document.getElementById("name-display").textContent = data.display_name
+
+        } else {
+            notLoggedIn();
+        }
+    } else {
+        notLoggedIn()
+    }
+}
+
+function notLoggedIn() {
+    document.getElementById("login-btn").style.display = ""
+    Cookies.remove("profile")
+}
+
+load()
