@@ -31,6 +31,7 @@ button:hover {
     --theme-color-darker: #17a248;
     --text-color: #eee;
     --text-color-darker: #ddd;
+    --text-color-darkest: #999;
 }
   
 
@@ -111,12 +112,47 @@ title {
     display: flex;
 }
 
-#list {
+
+#list-holder {
     width: 300px;
     flex-shrink: 0;
     background-color: #27292b;
     border-right: #5a5d5f 2px solid;
 }
+
+#search-bar {
+	display: flex;
+	height: 28px;
+	margin: 6px 24px;
+	box-sizing: border-box;
+    align-items: center;
+    border-bottom: var(--text-color-darkest) 1px solid;
+    fill: var(--text-color-darkest); 
+    transition: 0.1s;
+}
+#search-bar:focus-within {
+    border-bottom: var(--text-color-darker) 1px solid;
+    fill: var(--text-color-darker); 
+}
+
+#search-input {
+    height: 100%;
+    width: 100%;
+    margin-left: 8px;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text-color);
+}
+#search-input::placeholder {
+    transition: 0.1s;
+    color: var(--text-color-darkest);
+}
+#search-input:focus::placeholder {
+    color: var(--text-color-darker);
+}
+
+
 
 #dashboard {
 	width: 100%;
