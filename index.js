@@ -2,7 +2,7 @@ console.log("Hello world!")
 
 const stateKey = 'spotify_auth_state';
 const clientId = 'fd19eb51d7204c3f9096c4751e6c14fd';
-const redirectUri = "http://localhost:8888/callback"
+const redirectUri = (window.location.host === "localhost:8888") ? "http://localhost:8888/callback" : "https://asd988.github.io/callback"
 
 
 
