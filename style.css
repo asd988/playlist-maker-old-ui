@@ -93,6 +93,7 @@ title {
 	justify-content: center;
 	align-items: center;
 	font-size: x-large;
+    font-weight: 700;
 }
 
 #logout-btn {
