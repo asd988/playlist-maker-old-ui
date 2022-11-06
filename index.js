@@ -14,7 +14,7 @@ const listMemberHtml =
 </div>`
 
 let playlists;
-
+let my_id;
 let query = "";
 
 let generateRandomString = function (length) {
@@ -77,7 +77,7 @@ async function createPlaylist() {
         })
     }
 
-    const response = await fetch("https://api.spotify.com/v1/users/21kgfehz53e2vb6m2juoclu7q/playlists", {
+    const response = await fetch(`https://api.spotify.com/v1/users/${my_id}/playlists`, {
         method:"POST", 
         headers:{'Authorization': 'Bearer ' + access_token}, 
         body: JSON.stringify({name: name, public:false})
@@ -156,7 +156,8 @@ async function load() {
         // retrieve response from spotify
         let response = await fetch("https://api.spotify.com/v1/me", {headers:{'Authorization': 'Bearer ' + access_token}});
         let data = await response.json()
-        
+        my_id = data.id;
+
         // if response successful then continue
         if (response.status === 200) {
             // show logged in ui
