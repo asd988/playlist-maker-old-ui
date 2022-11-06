@@ -6,7 +6,7 @@ const redirectUri = (window.location.host === "localhost:8888") ? "http://localh
 
 const listMemberHtml = 
 `<div class="list-member">
-    <input type="checkbox" class="member-selection">
+    <input type="checkbox" class="member-selection" value="$">
     <div class="member-info">
         <text class="title">$</text>
         <text class="author desc">$</text>
@@ -14,6 +14,7 @@ const listMemberHtml =
     </div>
 </div>`
 
+let playlists;
 
 let generateRandomString = function (length) {
     let text = '';
@@ -59,6 +60,20 @@ function logout() {
     notLoggedIn()
 }
 
+// (to lazy to add a listener to every class member & some ppl say this is actually better)
+// add event listener to every checkbox
+document.body.addEventListener('change', function (evt) {
+    if (evt.target.className === "member-selection") {
+        checkboxChange(evt)
+    }
+}, false);
+function checkboxChange(event) {
+    const target = event.target;
+
+    playlists[target.value].selected = target.checked
+    console.log(playlists.filter( a => a.selected))
+} 
+
 async function load() {
     if (Cookies.get("profile") !== undefined) {
         // get access token
@@ -95,12 +110,14 @@ async function loadPlaylists(access_token) {
 
     // get items from spotify
     let { items } = await (await fetch("https://api.spotify.com/v1/me/playlists", {headers:{'Authorization': 'Bearer ' + access_token}})).json();
+    playlists = items;
+    playlists.map((a, i) => {a.internalId = i; a.selected = false});
 
     // place each in list
-    items.forEach( ({ name, owner, tracks }) => {
+    playlists.forEach( ({ name, owner, tracks, internalId }) => {
         list.appendChild(
             document.createRange().createContextualFragment(
-                listMemberHtml.fillOut("$", name, owner.display_name, tracks.total)
+                listMemberHtml.fillOut("$", internalId, name, owner.display_name, tracks.total)
                 )
             );
     })
