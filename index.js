@@ -5,7 +5,7 @@ const redirectUri = (window.location.host === "localhost:8888") ? "http://localh
 
 const listMemberHtml = 
 `<div class="list-member">
-    <input type="checkbox" class="member-selection" value="$">
+    <input type="checkbox" class="member-selection" value="$" $>
     <div class="member-info">
         <text class="title">$</text>
         <text class="author desc">$</text>
@@ -128,10 +128,10 @@ function displayPlaylists(pl) {
     // empty first
     list.innerHTML = "";
     // place each in list
-    pl.forEach( ({ name, owner, tracks, internalId }) => {
+    pl.forEach( ({ name, owner, tracks, internalId, selected }) => {
         list.appendChild(
             document.createRange().createContextualFragment(
-                listMemberHtml.fillOut("$", internalId, name, owner.display_name, tracks.total)
+                listMemberHtml.fillOut("$", internalId, selected ? "checked" : "", name, owner.display_name, tracks.total)
                 )
             );
     })
