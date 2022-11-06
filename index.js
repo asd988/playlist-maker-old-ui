@@ -42,7 +42,7 @@ function login() {
     const state = generateRandomString(16)
     Cookies.set(stateKey, state)
 
-    const scope = "user-read-private user-read-email playlist-read-private user-library-read"
+    const scope = "user-read-private user-read-email playlist-read-private user-library-read playlist-modify-private"
 
     // redirect
     location.href = "https://accounts.spotify.com/authorize?" + 
@@ -59,6 +59,31 @@ function logout() {
     // hide logged in ui
     document.getElementById("logged-in").style.display = "none"
     notLoggedIn()
+}
+
+async function createPlaylist() {
+    const { access_token } = JSON.parse(Cookies.get("profile"))
+    const name = document.getElementById("playlist-name").value
+    const remove_previous = document.getElementById("remove-previous").checked
+    const remove_duplicates = document.getElementById("remove-duplicates").checked
+
+    const previous_id = Cookies.get("previous_id")
+    Cookies.remove("previous_id")
+
+    if (remove_previous && previous_id !== undefined) {
+        fetch(`https://api.spotify.com/v1/playlists/${previous_id}/followers`, {
+            headers:{'Authorization': 'Bearer ' + access_token}, 
+            method: "DELETE"
+        })
+    }
+
+    const response = await fetch("https://api.spotify.com/v1/users/21kgfehz53e2vb6m2juoclu7q/playlists", {
+        method:"POST", 
+        headers:{'Authorization': 'Bearer ' + access_token}, 
+        body: JSON.stringify({name: name, public:false})
+    })
+    const data = await response.json();
+    Cookies.set("previous_id", data.id)
 }
 
 // (to lazy to add a listener to every class member & some ppl say this is actually better)

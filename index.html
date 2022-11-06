@@ -100,17 +100,17 @@
                         </div>
                         <div class="opt-row">
                             <text>Name: </text>
-                            <input type="text" value="Play Me">
+                            <input type="text" value="Play Me" id="playlist-name">
                         </div>
                         <div class="opt-row">
                             <text>Remove previous: </text>
-                            <input type="checkbox">
+                            <input type="checkbox" id="remove-previous" checked>
                         </div>
                         <div class="opt-row">
                             <text>Remove duplicates: </text>
-                            <input type="checkbox" checked>
+                            <input type="checkbox" id="remove-duplicates" checked>
                         </div>
-                        <button id="complete-btn">Create Playlist</button>
+                        <button id="complete-btn" onclick="createPlaylist()">Create Playlist</button>
                     </div>
                 </div>
             </div>
