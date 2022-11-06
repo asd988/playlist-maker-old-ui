@@ -56,28 +56,28 @@
                             <input id="search-input" placeholder="Search">
                         </div>
                         <div id="search-options">
-                            <div class="search-option bubble" id="sorting">
+                            <div class="search-option bubble" id="sorting" open="false" value="default">
                                 Sorting: Default<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" style="height: 8px;fill: var(--text-color-darkest);margin-left: 3px;"><path d="M30.048 14.432L16.8 27.648Q16.48 28 16 28t-.8-.352L1.952 14.432Q1.6 14.08 1.6 13.6t.352-.8l2.976-2.944q.32-.352.8-.352t.8.352L16 19.328l9.472-9.472q.352-.352.8-.352t.832.352l2.944 2.944q.352.352.352.8t-.352.832z"></path></svg>
-                                <div class="dropdown-content bubble">
-                                    <option selected>Default</option>
+                                <div class="dropdown-content bubble" style="display: none;">
+                                    <option value="default" selected>Default</option>
                                     <hr>
-                                    <option>A to Z</option>
+                                    <option value="az">A to Z</option>
                                     <hr>
-                                    <option>Z to A</option>
+                                    <option value="za">Z to A</option>
                                     <hr>
-                                    <option>Latest</option>
+                                    <option value="latest">Latest</option>
                                     <hr>
-                                    <option>Oldest</option>
+                                    <option value="oldest">Oldest</option>
                                 </div>
                             </div>
-                            <div class="search-option bubble" id="filter-by-selection">
+                            <div class="search-option bubble" id="filter-by-selection" open="false" value="none">
                                 Filter: None<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" style="height: 8px;fill: var(--text-color-darkest);margin-left: 3px;"><path d="M30.048 14.432L16.8 27.648Q16.48 28 16 28t-.8-.352L1.952 14.432Q1.6 14.08 1.6 13.6t.352-.8l2.976-2.944q.32-.352.8-.352t.8.352L16 19.328l9.472-9.472q.352-.352.8-.352t.832.352l2.944 2.944q.352.352.352.8t-.352.832z"></path></svg>
-                                <div class="dropdown-content bubble">
-                                    <option selected>None</option>
+                                <div class="dropdown-content bubble" style="display: none;">
+                                    <option value="none" selected>None</option>
                                     <hr>
-                                    <option>Selected</option>
+                                    <option value="selected">Selected</option>
                                     <hr>
-                                    <option>Unselected</option>
+                                    <option value="unselected">Unpicked</option>
                                 </div>
                             </div>
                         </div>

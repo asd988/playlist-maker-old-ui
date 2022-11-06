@@ -71,7 +71,38 @@ function checkboxChange(event) {
 
     playlists[target.value].selected = target.checked
     console.log(playlists.filter( a => a.selected))
-} 
+}
+
+
+const options = document.getElementsByClassName("search-option");
+for (let i = 0; i < options.length; i++) {
+    options[i].addEventListener("click", optionClick)
+}
+function optionClick(event) {
+    if (event.target.className.includes("search-option")) {
+        const isOpen = event.target.getAttribute("open") === "true";
+        event.target.setAttribute("open", !isOpen)
+        event.target.childNodes[3].style.display = isOpen ? "none" : "";
+    }
+    
+}
+
+
+const dp_options = document.querySelectorAll("option");
+for (let i = 0; i < dp_options.length; i++) {
+    dp_options[i].addEventListener("click", dpOptionSelect)
+}
+function dpOptionSelect(event) {
+    const target = event.target
+    target.parentNode.parentNode.setAttribute("value", target.value)
+    const children = target.parentNode.childNodes
+    for (let i = 0; i < children.length; i++) {
+        if (children[i].localName === "option") {
+            children[i].removeAttribute("selected")
+        }
+    }
+    target.setAttribute("selected", "")
+}
 
 const searchInput = document.getElementById("search-input")
 searchInput.addEventListener("keypress", function (event) {

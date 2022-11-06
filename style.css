@@ -181,6 +181,7 @@ title {
 	color: var(--text-color-darkest);
     font-weight: 500;
     user-select: none;
+    height: var(--search-height);
     max-height: var(--search-height);
     --horizontal-padding: 8px;
 }
