@@ -25,10 +25,11 @@ let generateRandomString = function (length) {
     return text;
 };
 
+// replaces a certain string with others...
 String.prototype.fillOut = function (what, ...to) {
     let array = this.split(what);
     to.forEach((a, i) => {
-        array.splice(2*(i+1)-1, 0, a);
+        array.splice(2*i+1, 0, a);
     })
     return array.join("");
 }
@@ -53,30 +54,28 @@ function login() {
 }
 
 function logout() {
+    // hide logged in ui
     document.getElementById("logged-in").style.display = "none"
     notLoggedIn()
 }
 
 async function load() {
     if (Cookies.get("profile") !== undefined) {
+        // get access token
         const { access_token } = JSON.parse(Cookies.get("profile"))
+
+        // retrieve response from spotify
         let response = await fetch("https://api.spotify.com/v1/me", {headers:{'Authorization': 'Bearer ' + access_token}});
         let data = await response.json()
-        console.log(data)
+        
+        // if response successful then continue
         if (response.status === 200) {
+            // show logged in ui
             document.getElementById("logged-in").style.display = ""
-
+            // display username
             document.getElementById("name-display").textContent = data.display_name
 
-            const list = document.getElementById("list")
-            let { items } = await (await fetch("https://api.spotify.com/v1/me/playlists", {headers:{'Authorization': 'Bearer ' + access_token}})).json();
-            items.forEach( ({ name, owner, tracks }) => {
-                list.appendChild(
-                    document.createRange().createContextualFragment(
-                        listMemberHtml.fillOut("$", name, owner.display_name, tracks.total)
-                        )
-                    );
-            })
+            loadPlaylists(access_token)
         } else {
             notLoggedIn();
         }
@@ -86,8 +85,27 @@ async function load() {
 }
 
 function notLoggedIn() {
+    // show log in ui
     document.getElementById("login-btn").style.display = ""
     Cookies.remove("profile")
 }
+
+async function loadPlaylists(access_token) {
+    const list = document.getElementById("list")
+
+    // get items from spotify
+    let { items } = await (await fetch("https://api.spotify.com/v1/me/playlists", {headers:{'Authorization': 'Bearer ' + access_token}})).json();
+
+    // place each in list
+    items.forEach( ({ name, owner, tracks }) => {
+        list.appendChild(
+            document.createRange().createContextualFragment(
+                listMemberHtml.fillOut("$", name, owner.display_name, tracks.total)
+                )
+            );
+    })
+}
+
+
 
 load()
