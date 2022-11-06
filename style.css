@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 
 body {
     background: var(--background); 
@@ -27,6 +27,8 @@ button:hover {
 
 :root {
     --background: #0f0f0f;
+    --list-bg: #27292b;
+    --dashboard-bg: #3a3b3c;
     --theme-color: #1ed760;
     --theme-color-darker: #17a248;
     --text-color: #eee;
@@ -49,7 +51,7 @@ title {
 }
 
 .tile {
-    background-color: #3a3b3c;
+    background-color: var(--dashboard-bg);
     /* border-radius: 10px; */
     /* box-shadow: 0px 0px 8px 0px rgba(0,0,0,0.3); */
     box-sizing: border-box;
@@ -116,7 +118,7 @@ title {
 #list-holder {
     width: 300px;
     flex-shrink: 0;
-    background-color: #27292b;
+    background-color: var(--list-bg);
     border-right: #5a5d5f 2px solid;
     display: flex;
     flex-flow: column;
@@ -153,6 +155,60 @@ title {
 }
 #search-input:focus::placeholder {
     color: var(--text-color-darker);
+}
+
+#search-options {
+	height: var(--search-height);
+	margin: 0 12px;
+	display: flex;
+	--search-height: 27px;
+	margin-bottom: 6px;
+    z-index: 1;
+}
+
+.bubble {
+    font-size: small;
+	box-sizing: border-box;
+	border: var(--text-color-darkest) 1px solid;
+	border-radius: calc(var(--search-height) /2);
+    background-color: var(--list-bg);
+}
+
+.search-option {
+	width: auto;
+	padding: 4px var(--horizontal-padding);
+	margin: 0 2px;
+	color: var(--text-color-darkest);
+    font-weight: 500;
+    user-select: none;
+    max-height: var(--search-height);
+    --horizontal-padding: 8px;
+}
+
+.dropdown-content {
+	width: calc(100% + var(--horizontal-padding) * 2);
+	position: relative;
+	left: calc(-1 * var(--horizontal-padding));
+    top: 10px;
+	height: auto;
+	padding: 4px var(--horizontal-padding);
+	box-sizing: border-box;
+}
+option {
+	padding: 2px;
+	border-radius: 6px;
+}
+option[selected] {
+    color: var(--text-color-darker);
+    background: none;
+}
+option:hover {
+	/* padding: 2px 0px; */
+	color: var(--text-color-darker);
+	background: #fff2;
+}
+.dropdown-content hr {
+	margin: 2px 0;
 }
 
 #list {
@@ -197,7 +253,7 @@ text.desc {
 	padding: 0;
 	height: 20px;
 	flex-shrink: 0;
-	margin: 0 10px;
+	margin: 0 16px;
 }
 
 #dashboard {
