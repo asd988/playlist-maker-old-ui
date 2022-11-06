@@ -4,6 +4,15 @@ const stateKey = 'spotify_auth_state';
 const clientId = 'fd19eb51d7204c3f9096c4751e6c14fd';
 const redirectUri = (window.location.host === "localhost:8888") ? "http://localhost:8888/callback" : "https://asd988.github.io/callback"
 
+const listMemberHtml = 
+`<div class="list-member">
+    <input type="checkbox" class="member-selection">
+    <div class="member-info">
+        <text class="title">$</text>
+        <text class="author desc">$</text>
+        <text class="info desc">$ songs</text>
+    </div>
+</div>`
 
 
 let generateRandomString = function (length) {
@@ -16,13 +25,21 @@ let generateRandomString = function (length) {
     return text;
 };
 
+String.prototype.fillOut = function (what, ...to) {
+    let array = this.split(what);
+    to.forEach((a, i) => {
+        array.splice(2*(i+1)-1, 0, a);
+    })
+    return array.join("");
+}
+
 function login() {
     console.log("logging in")
 
     const state = generateRandomString(16)
     Cookies.set(stateKey, state)
 
-    const scope = "user-read-private user-read-email"
+    const scope = "user-read-private user-read-email playlist-read-private user-library-read"
 
     // redirect
     location.href = "https://accounts.spotify.com/authorize?" + 
@@ -51,6 +68,15 @@ async function load() {
 
             document.getElementById("name-display").textContent = data.display_name
 
+            const list = document.getElementById("list")
+            let { items } = await (await fetch("https://api.spotify.com/v1/me/playlists", {headers:{'Authorization': 'Bearer ' + access_token}})).json();
+            items.forEach( ({ name, owner, tracks }) => {
+                list.appendChild(
+                    document.createRange().createContextualFragment(
+                        listMemberHtml.fillOut("$", name, owner.display_name, tracks.total)
+                        )
+                    );
+            })
         } else {
             notLoggedIn();
         }

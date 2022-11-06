@@ -155,6 +155,10 @@ title {
     color: var(--text-color-darker);
 }
 
+#list {
+    height: auto;
+}
+
 .list-member {
 	height: max-content;
 	display: flex;
