@@ -182,10 +182,22 @@ function displayPlaylists(pl) {
 function update() {
     const simpleQuery = query.toLocaleLowerCase().replaceAll(" ", "")
     const filter = document.getElementById("filter-by-selection").getAttribute("value")
+    const sort = document.getElementById("sorting").getAttribute("value")
 
     // clone playlists because some wierd referencing will take place
     let filteredLists = JSON.parse(JSON.stringify(playlists))
-    filteredLists = filteredLists.filter(({name, selected}) => {
+    filteredLists = filteredLists.sort((a, b) => {
+        a = a.name;
+        b = b.name;
+        if (sort === "a-z") {
+            return a.localeCompare(b);
+        } else if (sort === "z-a") {
+            return b.localeCompare(a);
+        } else if (sort === "latest") {
+            
+        }
+        return 0
+    }).filter(({name, selected}) => {
         const simpleName = name.toLocaleLowerCase().replaceAll(" ", "")
 
         let allow = true;
