@@ -1,4 +1,3 @@
-console.log("Hello world!")
 
 const stateKey = 'spotify_auth_state';
 const clientId = 'fd19eb51d7204c3f9096c4751e6c14fd';
@@ -74,6 +73,14 @@ function checkboxChange(event) {
     console.log(playlists.filter( a => a.selected))
 } 
 
+const searchInput = document.getElementById("search-input")
+searchInput.addEventListener("keypress", function (event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        searchFromPlaylists(searchInput.value)
+    }
+});
+
 async function load() {
     if (Cookies.get("profile") !== undefined) {
         // get access token
@@ -106,15 +113,22 @@ function notLoggedIn() {
 }
 
 async function loadPlaylists(access_token) {
-    const list = document.getElementById("list")
 
     // get items from spotify
     let { items } = await (await fetch("https://api.spotify.com/v1/me/playlists", {headers:{'Authorization': 'Bearer ' + access_token}})).json();
     playlists = items;
     playlists.map((a, i) => {a.internalId = i; a.selected = false});
 
+    displayPlaylists(playlists)
+}
+
+function displayPlaylists(pl) {
+    const list = document.getElementById("list")
+
+    // empty first
+    list.innerHTML = "";
     // place each in list
-    playlists.forEach( ({ name, owner, tracks, internalId }) => {
+    pl.forEach( ({ name, owner, tracks, internalId }) => {
         list.appendChild(
             document.createRange().createContextualFragment(
                 listMemberHtml.fillOut("$", internalId, name, owner.display_name, tracks.total)
@@ -123,6 +137,16 @@ async function loadPlaylists(access_token) {
     })
 }
 
+function searchFromPlaylists(query) {
+    const simpleQuery = query.toLocaleLowerCase().replaceAll(" ", "")
+    // clone playlists because some wierd referencing will take place
+    let filteredLists = JSON.parse(JSON.stringify(playlists))
+    filteredLists = filteredLists.filter(({name}) => {
+        const simpleName = name.toLocaleLowerCase().replaceAll(" ", "")
+        return simpleName.includes(simpleQuery) || simpleQuery.includes(simpleName);
+    })
+    displayPlaylists(filteredLists);
+}
 
 
 load()
