@@ -15,6 +15,8 @@ const listMemberHtml =
 
 let playlists;
 
+let query = "";
+
 let generateRandomString = function (length) {
     let text = '';
     let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -71,6 +73,7 @@ function checkboxChange(event) {
 
     playlists[target.value].selected = target.checked
     console.log(playlists.filter( a => a.selected))
+    update()
 }
 
 
@@ -79,10 +82,12 @@ for (let i = 0; i < options.length; i++) {
     options[i].addEventListener("click", optionClick)
 }
 function optionClick(event) {
-    if (event.target.className.includes("search-option")) {
-        const isOpen = event.target.getAttribute("open") === "true";
-        event.target.setAttribute("open", !isOpen)
-        event.target.childNodes[3].style.display = isOpen ? "none" : "";
+    let target = event.target;
+    if (target.localName === "text") target = target.parentNode
+    if (target.className.includes("search-option")) {
+        const isOpen = target.getAttribute("open") === "true";
+        target.setAttribute("open", !isOpen)
+        target.childNodes[5].style.display = isOpen ? "none" : "";
     }
     
 }
@@ -94,7 +99,10 @@ for (let i = 0; i < dp_options.length; i++) {
 }
 function dpOptionSelect(event) {
     const target = event.target
+
     target.parentNode.parentNode.setAttribute("value", target.value)
+    target.parentNode.parentNode.childNodes[1].innerText = target.parentNode.parentNode.childNodes[1].innerText.replace(/(?<=: ).*/, target.getAttribute("display-name"))
+
     const children = target.parentNode.childNodes
     for (let i = 0; i < children.length; i++) {
         if (children[i].localName === "option") {
@@ -102,13 +110,16 @@ function dpOptionSelect(event) {
         }
     }
     target.setAttribute("selected", "")
+    update()
 }
 
 const searchInput = document.getElementById("search-input")
 searchInput.addEventListener("keypress", function (event) {
     if (event.key === "Enter") {
         event.preventDefault();
-        searchFromPlaylists(searchInput.value)
+
+        query = searchInput.value
+        update()
     }
 });
 
@@ -168,13 +179,23 @@ function displayPlaylists(pl) {
     })
 }
 
-function searchFromPlaylists(query) {
+function update() {
     const simpleQuery = query.toLocaleLowerCase().replaceAll(" ", "")
+    const filter = document.getElementById("filter-by-selection").getAttribute("value")
+
     // clone playlists because some wierd referencing will take place
     let filteredLists = JSON.parse(JSON.stringify(playlists))
-    filteredLists = filteredLists.filter(({name}) => {
+    filteredLists = filteredLists.filter(({name, selected}) => {
         const simpleName = name.toLocaleLowerCase().replaceAll(" ", "")
-        return simpleName.includes(simpleQuery) || simpleQuery.includes(simpleName);
+
+        let allow = true;
+        if (filter === "selected") {
+            allow = selected;
+        } else if (filter === "unselected") {
+            allow = !selected
+        }
+
+        return (simpleName.includes(simpleQuery) || simpleQuery.includes(simpleName)) && allow;
     })
     displayPlaylists(filteredLists);
 }
