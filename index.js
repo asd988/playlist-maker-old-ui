@@ -16,6 +16,7 @@ const listMemberHtml =
 let playlists;
 let selectedIds = [];
 let my_id;
+let access_token;
 let query = "";
 
 let generateRandomString = function (length) {
@@ -69,7 +70,8 @@ function logout() {
 }
 
 async function createPlaylist() {
-    const { access_token } = JSON.parse(Cookies.get("profile"))
+    const profile = JSON.parse(Cookies.get("profile"))
+    access_token = profile.access_token
     const name = document.getElementById("playlist-name").value
     const remove_previous = document.getElementById("remove-previous").checked
     const remove_duplicates = document.getElementById("remove-duplicates").checked
@@ -91,6 +93,54 @@ async function createPlaylist() {
     })
     const data = await response.json();
     Cookies.set("previous_id", data.id)
+
+    const selectedPlaylists = playlists.filter(a => selectedIds.includes(a.id))
+    let promises = []
+    selectedPlaylists.forEach(a => promises.push(getAllTracks(a.id, a.tracks.total)))
+    const results = await Promise.all(promises)
+    let allTracks = [].concat.apply([], results)
+    if (remove_duplicates) allTracks = removeTrackDuplicates(allTracks);
+
+    putTracks(data.id, allTracks)
+}
+
+async function getAllTracks(playlistId, total) {
+    let offset = 0;
+    let promises = []
+    while (offset < total) {
+        promises.push( fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks?` + new URLSearchParams({
+            offset: offset
+        }), {
+            headers:{'Authorization': 'Bearer ' + access_token},
+            method: "GET"
+        }) )
+        offset += 100;
+    }
+    const responses = await Promise.all(promises)
+    const datas = await Promise.all(responses.map( a => a.json()))
+    let allItems = [];
+    datas.forEach( a => allItems = allItems.concat(a.items));
+    return allItems
+}
+
+async function putTracks(playlistId, tracks) {
+    const mappedTracks = tracks.map(({track}) => track.uri)
+    for (let i = 0; i < tracks.length; i += 100) {
+        fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+            headers:{'Authorization': 'Bearer ' + access_token},
+            method: "POST",
+            body: JSON.stringify({
+                uris: mappedTracks.slice(i, i+100)
+            })
+        })
+    }
+}
+
+function removeTrackDuplicates(tracks) {
+    let seen = {}
+    return tracks.filter(({track}) => {
+        return seen.hasOwnProperty(track.id) ? false : (seen[track.id] = true);
+    })
 }
 
 // (to lazy to add a listener to every class member & some ppl say this is actually better)
@@ -161,8 +211,9 @@ searchInput.addEventListener("keypress", function (event) {
 
 async function load() {
     if (Cookies.get("profile") !== undefined) {
-        // get access token
-        const { access_token } = JSON.parse(Cookies.get("profile"))
+        // get access_token
+        const profile = JSON.parse(Cookies.get("profile"))
+        access_token = profile.access_token
 
         // retrieve response from spotify
         let response = await fetch("https://api.spotify.com/v1/me", {headers:{'Authorization': 'Bearer ' + access_token}});
@@ -176,7 +227,7 @@ async function load() {
             // display username
             document.getElementById("name-display").textContent = data.display_name
 
-            loadPlaylists(access_token)
+            loadPlaylists()
         } else {
             notLoggedIn();
         }
@@ -191,7 +242,7 @@ function notLoggedIn() {
     Cookies.remove("profile")
 }
 
-async function loadPlaylists(access_token) {
+async function loadPlaylists() {
 
     // get items from spotify
     let { items } = await (await fetch("https://api.spotify.com/v1/me/playlists", {headers:{'Authorization': 'Bearer ' + access_token}})).json();
