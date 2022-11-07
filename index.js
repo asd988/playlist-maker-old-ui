@@ -14,6 +14,7 @@ const listMemberHtml =
 </div>`
 
 let playlists;
+let selectedIds = [];
 let my_id;
 let query = "";
 
@@ -34,6 +35,12 @@ String.prototype.fillOut = function (what, ...to) {
         array.splice(2*i+1, 0, a);
     })
     return array.join("");
+}
+Array.prototype.remove = function (item) {
+    var index = this.indexOf(item);
+    if (index !== -1) {
+        this.splice(index, 1);
+    }
 }
 
 function login() {
@@ -96,8 +103,12 @@ document.body.addEventListener('change', function (evt) {
 function checkboxChange(event) {
     const target = event.target;
 
-    playlists[target.value].selected = target.checked
-    console.log(playlists.filter( a => a.selected))
+    if (target.checked) {
+        selectedIds.push(playlists[target.value].id)
+    } else {
+        selectedIds.remove(playlists[target.value].id)
+    }
+    console.log(selectedIds)
     update()
 }
 
@@ -185,9 +196,9 @@ async function loadPlaylists(access_token) {
     // get items from spotify
     let { items } = await (await fetch("https://api.spotify.com/v1/me/playlists", {headers:{'Authorization': 'Bearer ' + access_token}})).json();
     playlists = items;
-    playlists.map((a, i) => {a.internalId = i; a.selected = false});
+    playlists.map((a, i) => a.internalId = i);
 
-    displayPlaylists(playlists)
+    update(playlists)
 }
 
 function displayPlaylists(pl) {
@@ -196,7 +207,8 @@ function displayPlaylists(pl) {
     // empty first
     list.innerHTML = "";
     // place each in list
-    pl.forEach( ({ name, owner, tracks, internalId, selected }) => {
+    pl.forEach( ({ name, owner, tracks, id, internalId }) => {
+        const selected = selectedIds.includes(id);
         list.appendChild(
             document.createRange().createContextualFragment(
                 listMemberHtml.fillOut("$", internalId, selected ? "checked" : "", name, owner.display_name, tracks.total)
@@ -223,7 +235,8 @@ function update() {
             
         }
         return 0
-    }).filter(({name, selected}) => {
+    }).filter(({name, id}) => {
+        const selected = selectedIds.includes(id);
         const simpleName = name.toLocaleLowerCase().replaceAll(" ", "")
 
         let allow = true;
