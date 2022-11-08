@@ -51,23 +51,29 @@ async function createPlaylist() {
     const remove_previous = document.getElementById("remove-previous").checked
     const remove_duplicates = document.getElementById("remove-duplicates").checked
 
-    const previous_id = Cookies.get("previous_id")
-    Cookies.remove("previous_id")
+    let id = Cookies.get("previous_id")
 
-    if (remove_previous && previous_id !== undefined) {
-        fetch(`https://api.spotify.com/v1/playlists/${previous_id}/followers`, {
+    if (remove_previous && id !== undefined) {
+        const previousTracks = await getAllTracks(
+            id, 
+            playlists.filter(a => a.id === id)[0].tracks.total
+        );
+        console.log(previousTracks)
+        console.log(playlists.filter(a => a.id === id)[0].tracks.total)
+        await removeTracks(id, previousTracks.map(a => a.track.uri))
+    } else {
+        const response = await fetch(`https://api.spotify.com/v1/users/${my_id}/playlists`, {
+            method:"POST", 
             headers:{'Authorization': 'Bearer ' + access_token}, 
-            method: "DELETE"
+            body: JSON.stringify({name: name, public:false})
         })
+        const data = await response.json();
+        Cookies.set("previous_id", data.id)
+        id = data.id;
     }
 
-    const response = await fetch(`https://api.spotify.com/v1/users/${my_id}/playlists`, {
-        method:"POST", 
-        headers:{'Authorization': 'Bearer ' + access_token}, 
-        body: JSON.stringify({name: name, public:false})
-    })
-    const data = await response.json();
-    Cookies.set("previous_id", data.id)
+    
+    
 
     const selectedPlaylists = playlists.filter(a => selectedIds.includes(a.id))
     let promises = []
@@ -76,7 +82,11 @@ async function createPlaylist() {
     let allTracks = [].concat.apply([], results)
     if (remove_duplicates) allTracks = removeTrackDuplicates(allTracks);
 
-    putTracks(data.id, allTracks)
+
+    const trackUris = allTracks.map(({track}) => track.uri)
+    await putTracks(id, trackUris)
+    //await delay(100)
+    loadPlaylists()
 }
 
 async function getAllTracks(playlistId, total) {
@@ -98,17 +108,32 @@ async function getAllTracks(playlistId, total) {
     return allItems
 }
 
-async function putTracks(playlistId, tracks) {
-    const mappedTracks = tracks.map(({track}) => track.uri)
-    for (let i = 0; i < tracks.length; i += 100) {
+async function removeTracks(playlistId, trackUris) {
+    console.log(playlistId)
+    console.log(trackUris)
+    for (let i = 0; i < trackUris.length; i += 100) {
         fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
             headers:{'Authorization': 'Bearer ' + access_token},
-            method: "POST",
+            method: "DELETE",
             body: JSON.stringify({
-                uris: mappedTracks.slice(i, i+100)
+                uris: trackUris.slice(i, i+100)
             })
         })
     }
+}
+
+async function putTracks(playlistId, trackUris) {
+    let promises = []
+    for (let i = 0; i < trackUris.length; i += 100) {
+        promises.push( fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+            headers:{'Authorization': 'Bearer ' + access_token},
+            method: "POST",
+            body: JSON.stringify({
+                uris: trackUris.slice(i, i+100)
+            })
+        }) )
+    }
+    return await Promise.all(promises)
 }
 
 function removeTrackDuplicates(tracks) {
