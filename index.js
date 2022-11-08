@@ -59,8 +59,6 @@ async function createPlaylist() {
             id, 
             playlists.filter(a => a.id === id)[0].tracks.total
         );
-        console.log(previousTracks)
-        console.log(playlists.filter(a => a.id === id)[0].tracks.total)
         await removeTracks(id, previousTracks.map(a => a.track.uri))
     } else {
         const response = await fetch(`https://api.spotify.com/v1/users/${my_id}/playlists`, {
@@ -111,8 +109,6 @@ async function getAllTracks(playlistId, total) {
 }
 
 async function removeTracks(playlistId, trackUris) {
-    console.log(playlistId)
-    console.log(trackUris)
     for (let i = 0; i < trackUris.length; i += 100) {
         fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
             headers:{'Authorization': 'Bearer ' + access_token},
@@ -160,7 +156,6 @@ function checkboxChange(event) {
     } else {
         selectedIds.remove(playlists[target.value].id)
     }
-    console.log(selectedIds)
     update()
 }
 
