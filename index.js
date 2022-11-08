@@ -48,6 +48,7 @@ async function createPlaylist() {
     const profile = JSON.parse(Cookies.get("profile"))
     access_token = profile.access_token
     const name = document.getElementById("playlist-name").value
+    const order = document.getElementById("playlist-order").value
     const remove_previous = document.getElementById("remove-previous").checked
     const remove_duplicates = document.getElementById("remove-duplicates").checked
 
@@ -83,7 +84,8 @@ async function createPlaylist() {
     if (remove_duplicates) allTracks = removeTrackDuplicates(allTracks);
 
 
-    const trackUris = allTracks.map(({track}) => track.uri)
+    let trackUris = allTracks.map(({track}) => track.uri)
+    if (order === "random") trackUris = shuffleArray(trackUris);
     await putTracks(id, trackUris)
     //await delay(100)
     loadPlaylists()
