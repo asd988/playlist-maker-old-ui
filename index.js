@@ -1,47 +1,31 @@
 
-const stateKey = 'spotify_auth_state';
-const clientId = 'fd19eb51d7204c3f9096c4751e6c14fd';
-const redirectUri = (window.location.host === "localhost:8888") ? "http://localhost:8888/callback" : "https://asd988.github.io/callback"
-
-const listMemberHtml = 
-`<div class="list-member">
-    <input type="checkbox" class="member-selection" value="$" $>
-    <div class="member-info">
-        <text class="title">$</text>
-        <text class="author desc">$</text>
-        <text class="info desc">$ songs</text>
-    </div>
-</div>`
-
 let playlists;
 let selectedIds = [];
 let my_id;
 let access_token;
 let query = "";
 
-function login() {
-    console.log("logging in")
+// runs on load
+async function load() {
+    if (Cookies.get("profile") !== undefined) {
+        // get access_token
+        const profile = JSON.parse(Cookies.get("profile"))
+        access_token = profile.access_token
 
-    const state = generateRandomString(16)
-    Cookies.set(stateKey, state)
+        // retrieve response from spotify
+        let response = await fetch("https://api.spotify.com/v1/me", {headers:{'Authorization': 'Bearer ' + access_token}});
+        let data = await response.json()
+        my_id = data.id;
 
-    const scope = "user-read-private user-read-email playlist-read-private user-library-read playlist-modify-private"
-
-    // redirect
-    location.href = "https://accounts.spotify.com/authorize?" + 
-        new URLSearchParams({
-            response_type: 'code',
-            client_id: clientId,
-            scope: scope,
-            redirect_uri: redirectUri,
-            state: state
-        }).toString();
-}
-
-function logout() {
-    // hide logged in ui
-    document.getElementById("logged-in").style.display = "none"
-    notLoggedIn()
+        // if response successful then continue
+        if (response.status === 200) {
+            loggedIn(data.display_name)
+        } else {
+            notLoggedIn();
+        }
+    } else {
+        notLoggedIn()
+    }
 }
 
 async function createPlaylist() {
@@ -89,58 +73,6 @@ async function createPlaylist() {
     loadPlaylists()
 }
 
-async function getAllTracks(playlistId, total) {
-    let offset = 0;
-    let promises = []
-    while (offset < total) {
-        promises.push( fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks?` + new URLSearchParams({
-            offset: offset
-        }), {
-            headers:{'Authorization': 'Bearer ' + access_token},
-            method: "GET"
-        }) )
-        offset += 100;
-    }
-    const responses = await Promise.all(promises)
-    const datas = await Promise.all(responses.map( a => a.json()))
-    let allItems = [];
-    datas.forEach( a => allItems = allItems.concat(a.items));
-    return allItems
-}
-
-async function removeTracks(playlistId, trackUris) {
-    for (let i = 0; i < trackUris.length; i += 100) {
-        fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
-            headers:{'Authorization': 'Bearer ' + access_token},
-            method: "DELETE",
-            body: JSON.stringify({
-                uris: trackUris.slice(i, i+100)
-            })
-        })
-    }
-}
-
-async function putTracks(playlistId, trackUris) {
-    let promises = []
-    for (let i = 0; i < trackUris.length; i += 100) {
-        promises.push( fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
-            headers:{'Authorization': 'Bearer ' + access_token},
-            method: "POST",
-            body: JSON.stringify({
-                uris: trackUris.slice(i, i+100)
-            })
-        }) )
-    }
-    return await Promise.all(promises)
-}
-
-function removeTrackDuplicates(tracks) {
-    let seen = {}
-    return tracks.filter(({track}) => {
-        return seen.hasOwnProperty(track.id) ? false : (seen[track.id] = true);
-    })
-}
-
 // (to lazy to add a listener to every class member & some ppl say this is actually better)
 // add event listener to every checkbox
 document.body.addEventListener('change', function (evt) {
@@ -159,7 +91,7 @@ function checkboxChange(event) {
     update()
 }
 
-
+// search options
 const options = document.getElementsByClassName("search-option");
 for (let i = 0; i < options.length; i++) {
     options[i].addEventListener("click", optionClick)
@@ -175,7 +107,7 @@ function optionClick(event) {
     
 }
 
-
+// dropdown options
 const dp_options = document.querySelectorAll("option");
 for (let i = 0; i < dp_options.length; i++) {
     dp_options[i].addEventListener("click", dpOptionSelect)
@@ -206,98 +138,19 @@ searchInput.addEventListener("keypress", function (event) {
     }
 });
 
-async function load() {
-    if (Cookies.get("profile") !== undefined) {
-        // get access_token
-        const profile = JSON.parse(Cookies.get("profile"))
-        access_token = profile.access_token
-
-        // retrieve response from spotify
-        let response = await fetch("https://api.spotify.com/v1/me", {headers:{'Authorization': 'Bearer ' + access_token}});
-        let data = await response.json()
-        my_id = data.id;
-
-        // if response successful then continue
-        if (response.status === 200) {
-            // show logged in ui
-            document.getElementById("logged-in").style.display = ""
-            // display username
-            document.getElementById("name-display").textContent = data.display_name
-
-            loadPlaylists()
-        } else {
-            notLoggedIn();
-        }
-    } else {
-        notLoggedIn()
-    }
-}
-
 function notLoggedIn() {
     // show log in ui
     document.getElementById("login-btn").style.display = ""
     Cookies.remove("profile")
 }
 
-async function loadPlaylists() {
+function loggedIn(name) {
+    // show logged in ui
+    document.getElementById("logged-in").style.display = ""
+    // display username
+    document.getElementById("name-display").textContent = name
 
-    // get items from spotify
-    let { items } = await (await fetch("https://api.spotify.com/v1/me/playlists", {headers:{'Authorization': 'Bearer ' + access_token}})).json();
-    playlists = items;
-    playlists.map((a, i) => a.internalId = i);
-
-    update(playlists)
+    loadPlaylists()
 }
-
-function displayPlaylists(pl) {
-    const list = document.getElementById("list")
-
-    // empty first
-    list.innerHTML = "";
-    // place each in list
-    pl.forEach( ({ name, owner, tracks, id, internalId }) => {
-        const selected = selectedIds.includes(id);
-        list.appendChild(
-            document.createRange().createContextualFragment(
-                listMemberHtml.fillOut("$", internalId, selected ? "checked" : "", name, owner.display_name, tracks.total)
-                )
-            );
-    })
-}
-
-function update() {
-    const simpleQuery = query.toLocaleLowerCase().replaceAll(" ", "")
-    const filter = document.getElementById("filter-by-selection").getAttribute("value")
-    const sort = document.getElementById("sorting").getAttribute("value")
-
-    // clone playlists because some wierd referencing will take place
-    let filteredLists = JSON.parse(JSON.stringify(playlists))
-    filteredLists = filteredLists.sort((a, b) => {
-        a = a.name;
-        b = b.name;
-        if (sort === "a-z") {
-            return a.localeCompare(b);
-        } else if (sort === "z-a") {
-            return b.localeCompare(a);
-        } else if (sort === "latest") {
-            
-        }
-        return 0
-    }).filter(({name, id}) => {
-        const selected = selectedIds.includes(id);
-        const simpleName = name.toLocaleLowerCase().replaceAll(" ", "")
-
-        let allow = true;
-        if (filter === "selected") {
-            allow = selected;
-        } else if (filter === "unselected") {
-            allow = !selected
-        }
-
-        return (simpleName.includes(simpleQuery) || simpleQuery.includes(simpleName)) && allow;
-    })
-    displayPlaylists(filteredLists);
-}
-
 
 load()
